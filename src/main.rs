@@ -13,7 +13,7 @@ struct StaticJS(&'static [u8]);
 
 // Include webparty.js as bytes
 static PARTYJS: &'static [u8] = include_bytes!("webparty.js");
-static PARTYHTML: &'static [u8] = include_bytes!("webparty.html");
+static PARTYHTML: &'static [u8] = include_bytes!("default.html");
 
 #[get("/")]
 fn index() -> PartyHtml {
@@ -21,7 +21,7 @@ fn index() -> PartyHtml {
     PartyHtml(html)
 }
 
-#[get("/Dont🫥Remove🫥This🫥Line!")]
+#[get("/Dont remove this")]
 fn webparty() -> StaticJS {
     StaticJS(PARTYJS)
 }
