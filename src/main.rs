@@ -3,6 +3,7 @@ use rocket::{data::Capped, response::content::{RawHtml, RawJavaScript, RawText}}
 #[macro_use] extern crate rocket;
 
 
+
 #[derive(Responder)]
 #[response(status = 200, content_type = "html")]
 struct PartyHtml(String);
@@ -11,7 +12,7 @@ struct PartyHtml(String);
 #[response(status = 200, content_type = "text/javascript")]
 struct StaticJS(&'static [u8]);
 
-// Include webparty.js as bytes
+// Include webparty.js and default html as bytes
 static PARTYJS: &'static [u8] = include_bytes!("webparty.js");
 static PARTYHTML: &'static [u8] = include_bytes!("default.html");
 
@@ -26,9 +27,8 @@ fn webparty() -> StaticJS {
     StaticJS(PARTYJS)
 }
 
-#[post("/update", data="<markup>")]
+#[put("/update", data="<markup>")]
 async fn push_html(markup: String) -> &'static str {
-    
     std::fs::write("./webparty.html", markup).unwrap();
     "ACK"
 }
