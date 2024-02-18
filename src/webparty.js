@@ -25,6 +25,7 @@ function sendUpdate() {
         method: 'PUT',
         headers: {
             'Content-Type': 'text/html',
+            'Authorization': 'Basic ' + window.localStorage.getItem('auth'),
         },
         body: source,
     });
