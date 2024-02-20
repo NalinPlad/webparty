@@ -138,13 +138,16 @@ fn rocket() -> _ {
         std::fs::write(&args.path, PARTYHTML).unwrap();
     }
 
-    if args.auth && args.token.is_none() {
-        println!("Looks like you didn't provide a custom password with --token <TOKEN>. I'll generate on for you.");
+    let token = if args.auth && args.token.is_none() {
+        println!("Looks like you didn't provide a custom password with --token <TOKEN>. I'll generate one for you.");
         let token = rand::random::<u64>().to_string();
         println!("Your token is: {}", token);
+        Some(token)
+    } else if args.auth && args.token.is_some() {
+        Some(args.token.clone().unwrap())
     } else {
-        let token = args.token.clone().unwrap();
-    }
+        None
+    };
 
     let options = PartyOptions {
         auth: AtomicBool::new(args.auth),
