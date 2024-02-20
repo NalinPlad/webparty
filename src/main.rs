@@ -1,5 +1,5 @@
-use std::{fs::write, path::Path, sync::atomic::AtomicBool};
-
+use std::{fs::write, path::Path, sync::atomic::{AtomicBool, Ordering}};
+use rand::Rng;
 use clap::Parser;
 use rocket::{http::Status, request::{self, FromRequest, Outcome}, Request, State};
 
@@ -79,44 +79,53 @@ fn webparty() -> StaticJS {
     StaticJS(PARTYJS)
 }
 
-struct Token(String);
+struct Token<'r>(&'r str);
 
 #[derive(Debug)]
-enum AuthError {
+enum TokenError {
     Missing,
-    Invalid,
+    Invalid
 }
 
 #[rocket::async_trait]
-impl<'r> FromRequest<'r> for Token {
-    type Error = AuthError;
+impl<'r> FromRequest<'r> for Token<'r> {
+    type Error = TokenError;
 
-    async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
-        let keys: Vec<_> = req.headers().get("Authorization").collect();
+    async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
 
-        if keys.len() != 1 {
-            return Outcome::Error((Status::Unauthorized, AuthError::Missing));
+        // We have to retrieve the state from the rocket object
+        let state = req.rocket().state::<State<PartyOptions>>().unwrap();
+
+        if !state.auth.load(Ordering::Relaxed) {
+            // Auth is disabled so return success to return to request handler
+            return Outcome::Success(Token(""));
+        } else {
+            // Get token value from managed state
+            let token = state.token.as_ref().unwrap();
+
+            // Match the Auth header. Return Error outcome to fail the request immediately
+            match req.headers().get_one("Authentication") {
+                None => Outcome::Error((Status::BadRequest, TokenError::Missing)),
+                Some(key) if key == token => Outcome::Success(Token(key)),
+                Some(_) => Outcome::Error((Status::BadRequest, TokenError::Invalid)),
+            }
         }
-
-        let key = keys[0];
-
-        if key != "Basic " {
-            return Outcome::Error((Status::Unauthorized, AuthError::Invalid));
-        }
-        Outcome::Success(Token(key.to_string()))
     }
 }
 
 
 #[put("/update", data="<markup>")]
-async fn push_html(markup: String, state: &State<PartyOptions>) -> &'static str {
+async fn push_html(markup: String, state: &State<PartyOptions>, _auth: Token<'_>) -> Status {
+
+    // Check for client code if checks aren't disabled
     if !state.disable_check && !markup.contains(r#"<script src="/Dont remove this"></script>"#) {
-        return "ERROR: webparty.js tag not found in markup";
+        return Status::BadRequest;
     }
 
-    
-    write("./webparty.html", markup).unwrap();
-    "ACK"
+    // Auth is handled by request guard https://api.rocket.rs/v0.5/rocket/request/trait.FromRequest.html#outcomes
+
+    write(&state.path, markup).unwrap();
+    Status::Ok
 }
 
 
@@ -129,9 +138,17 @@ fn rocket() -> _ {
         std::fs::write(&args.path, PARTYHTML).unwrap();
     }
 
+    if args.auth && args.token.is_none() {
+        println!("Looks like you didn't provide a custom password with --token <TOKEN>. I'll generate on for you.");
+        let token = rand::random::<u64>().to_string();
+        println!("Your token is: {}", token);
+    } else {
+        let token = args.token.clone().unwrap();
+    }
+
     let options = PartyOptions {
         auth: AtomicBool::new(args.auth),
-        token: args.token,
+        token: token,
         path: args.path,
         disable_check: args.disable_check
     };
