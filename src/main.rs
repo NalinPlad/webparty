@@ -1,7 +1,8 @@
 use std::{fs::write, path::Path, sync::atomic::{AtomicBool, Ordering}};
-use rand::Rng;
 use clap::Parser;
-use rocket::{http::Status, request::{self, FromRequest, Outcome}, Request, State};
+
+use rocket::{http::Status, request::{FromRequest, Outcome}, Request, State};
+#[macro_use] extern crate rocket;
 
 #[derive(Parser, Debug, Clone)]
 #[command(version, about, long_about = None)]
@@ -37,7 +38,6 @@ struct Args {
     port: u16
 }
 
-#[macro_use] extern crate rocket;
 
 
 #[derive(Responder)]
@@ -160,3 +160,5 @@ fn rocket() -> _ {
     .mount("/", routes![index, webparty, push_html])
     .manage(options)
 }
+
+#[cfg(test)] mod tests;
