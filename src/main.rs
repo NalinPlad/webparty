@@ -72,7 +72,7 @@ fn index() -> PartyHtml {
     PartyHtml(html)
 }
 
-#[get("/Dont remove this")]
+#[get("/Dont_remove_this")]
 fn webparty() -> StaticJS {
     StaticJS(PARTYJS)
 }
@@ -92,7 +92,7 @@ impl<'r> FromRequest<'r> for Token<'r> {
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
 
         // We have to retrieve the state from the rocket object
-        let state = req.rocket().state::<State<PartyOptions>>().unwrap();
+        let state = req.guard::<&State<PartyOptions>>().await.unwrap();
 
         if !state.auth.load(Ordering::Relaxed) {
             // Auth is disabled so return success to return to request handler
@@ -102,7 +102,7 @@ impl<'r> FromRequest<'r> for Token<'r> {
             let token = state.token.as_ref().unwrap();
 
             // Match the Auth header. Return Error outcome to fail the request immediately
-            match req.headers().get_one("Authentication") {
+            match req.headers().get_one("Authorization") {
                 None => Outcome::Error((Status::BadRequest, TokenError::Missing)),
                 Some(key) if key == token => Outcome::Success(Token(key)),
                 Some(_) => Outcome::Error((Status::BadRequest, TokenError::Invalid)),
@@ -116,7 +116,7 @@ impl<'r> FromRequest<'r> for Token<'r> {
 async fn push_html(markup: String, state: &State<PartyOptions>, _auth: Token<'_>) -> Status {
 
     // Check for client code if checks aren't disabled
-    if !state.disable_check && !markup.contains(r#"<script src="/Dont remove this"></script>"#) {
+    if !state.disable_check && !markup.contains(r#"<script src="/Dont_remove_this"></script>"#) {
         return Status::BadRequest;
     }
 
