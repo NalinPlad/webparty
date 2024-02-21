@@ -8,7 +8,7 @@ use rocket::{http::Status, request::{FromRequest, Outcome}, Config, Request, Sta
 #[command(version, about, long_about = None)]
 struct Args {
     /// Overwrite existing webparty save with starter page
-    #[arg(short, long, default_value_t = false)]
+    #[arg(long, default_value_t = false)]
     force: bool,
 
     /// Enable Authentication
@@ -20,11 +20,11 @@ struct Args {
     token: Option<String>,
 
     /// Path to persist webparty
-    #[arg(short, long, default_value_t = String::from("./webparty.html"))]
+    #[arg(long, default_value_t = String::from("./webparty.html"))]
     path: String,
 
     /// Disable checking for webparty client code when writing to persisted file (not recommended)
-    #[arg(short, long, default_value_t = false)]
+    #[arg(long, default_value_t = false)]
     disable_check: bool,
 
     /// Verbose output [enable logging for all requests]
@@ -141,6 +141,7 @@ fn rocket() -> _ {
 
         let token = rand::random::<u64>().to_string();
         println!("Your token is: {}", token);
+        println!();
 
         Some(token)
     } else if args.auth && args.token.is_some() {

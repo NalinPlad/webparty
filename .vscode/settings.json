@@ -1,8 +1,8 @@
 {
-    "github.copilot.inlineSuggest.enable": true,
-    "cSpell.words": [
-        "PARTYHTML",
-        "PARTYJS",
-        "webparty"
-    ]
+  "github.copilot.inlineSuggest.enable": true,
+  "cSpell.words": [
+    "PARTYHTML",
+    "PARTYJS",
+    "webparty"
+  ]
 }
