@@ -30,51 +30,10 @@ struct Args {
     /// Verbose output [enable logging for all requests]
     #[arg(short, long, default_value_t = false)]
     verbose: bool,
-
+    
     /// Port to run webparty on
     #[arg(short, long, default_value_t = 8000)]
     port: u16
-}
-
-
-
-#[derive(Responder)]
-#[response(status = 200, content_type = "html")]
-struct PartyHtml(String);
-
-#[derive(Responder)]
-#[response(status = 200, content_type = "text/javascript")]
-struct StaticJS(&'static [u8]);
-
-// Include webparty.js and default html as bytes
-static PARTYJS: &'static [u8] = include_bytes!("webparty.js");
-static PARTYHTML: &'static [u8] = include_bytes!("default.html");
-
-
-/// Options that should be exposed to route handlers
-struct PartyOptions {
-    // Authentication
-    auth: AtomicBool,
-    token: Option<String>,
-
-    // Path
-    path: String,
-
-    // Disable checking for webparty.js tag
-    disable_check: bool
-}
-
-
-// Serve the main page
-#[get("/")]
-fn index() -> PartyHtml {
-    let html = std::fs::read_to_string("./webparty.html").unwrap();
-    PartyHtml(html)
-}
-
-#[get("/Dont_remove_this")]
-fn webparty() -> StaticJS {
-    StaticJS(PARTYJS)
 }
 
 struct Token<'r>(&'r str);
@@ -110,6 +69,58 @@ impl<'r> FromRequest<'r> for Token<'r> {
         }
     }
 }
+
+
+#[derive(Responder)]
+#[response(status = 200, content_type = "html")]
+struct PartyHtml(String);
+
+#[derive(Responder)]
+#[response(status = 200, content_type = "text/javascript")]
+struct StaticJS(&'static [u8]);
+
+#[derive(Responder)]
+#[response(status = 500, content_type = "html")]
+struct StaticPartyError(&'static [u8]);
+
+// Include webparty.js and default html as bytes
+static PARTYJS: &'static [u8] = include_bytes!("webparty.js");
+static PARTYHTML: &'static [u8] = include_bytes!("default.html");
+static PARTYERRORHTML: &'static [u8] = include_bytes!("error.html");
+
+
+/// Options that should be exposed to route handlers
+struct PartyOptions {
+    // Authentication
+    auth: AtomicBool,
+    token: Option<String>,
+
+    // Path
+    path: String,
+
+    // Disable checking for webparty.js tag
+    disable_check: bool
+}
+
+#[catch(500)]
+fn internal_error(req: &Request) -> StaticPartyError {
+    println!("Error: {:?}", req);
+    StaticPartyError(PARTYERRORHTML)
+}
+
+
+// Serve the main page
+#[get("/")]
+fn index(state: &State<PartyOptions>) -> PartyHtml {
+    let html = std::fs::read_to_string(&state.path).unwrap();
+    PartyHtml(html)
+}
+
+#[get("/Dont_remove_this")]
+fn webparty() -> StaticJS {
+    StaticJS(PARTYJS)
+}
+
 
 
 #[put("/update", data="<markup>")]
@@ -161,12 +172,15 @@ fn rocket() -> _ {
     // Sever config
     let config = Config {
         port: args.port,
-        log_level: if args.verbose { rocket::config::LogLevel::Normal } else { rocket::config::LogLevel::Critical },
+        log_level: if args.verbose { rocket::config::LogLevel::Normal } else { rocket::config::LogLevel::Off },
         ..Config::default()
     };
 
+    print!("Starting webparty on port {}...", args.port);
+
     rocket::build()
         .configure(config)
+        .register("/", catchers![internal_error])
         .mount("/", routes![index, webparty, push_html])
         .manage(options)
 }
