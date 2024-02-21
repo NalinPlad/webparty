@@ -51,7 +51,7 @@ static PARTYJS: &'static [u8] = include_bytes!("webparty.js");
 static PARTYHTML: &'static [u8] = include_bytes!("default.html");
 
 
-// Options that should be exposed to route handlers
+/// Options that should be exposed to route handlers
 struct PartyOptions {
     // Authentication
     auth: AtomicBool,

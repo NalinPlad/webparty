@@ -21,7 +21,7 @@ function getPageSource() {
 
 function sendUpdate() {
     let source = getPageSource();
-    fetch('http://localhost:8000/update', {
+    fetch('/update', {
         method: 'PUT',
         headers: {
             'Content-Type': 'text/html',
