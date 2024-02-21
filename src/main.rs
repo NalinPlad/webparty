@@ -1,7 +1,7 @@
 use std::{fs::write, path::Path, sync::atomic::{AtomicBool, Ordering}};
 use clap::Parser;
 
-use rocket::{http::Status, request::{FromRequest, Outcome}, Request, State};
+use rocket::{http::Status, request::{FromRequest, Outcome}, Config, Request, State};
 #[macro_use] extern crate rocket;
 
 #[derive(Parser, Debug, Clone)]
@@ -27,13 +27,11 @@ struct Args {
     #[arg(short, long, default_value_t = false)]
     disable_check: bool,
 
-    /// Verbose output
-    // TODO
+    /// Verbose output [enable logging for all requests]
     #[arg(short, long, default_value_t = false)]
     verbose: bool,
 
     /// Port to run webparty on
-    // TODO
     #[arg(short, long, default_value_t = 8000)]
     port: u16
 }
@@ -140,8 +138,10 @@ fn rocket() -> _ {
 
     let token = if args.auth && args.token.is_none() {
         println!("Looks like you didn't provide a custom password with --token <TOKEN>. I'll generate one for you.");
+
         let token = rand::random::<u64>().to_string();
         println!("Your token is: {}", token);
+
         Some(token)
     } else if args.auth && args.token.is_some() {
         Some(args.token.clone().unwrap())
@@ -149,6 +149,7 @@ fn rocket() -> _ {
         None
     };
 
+    // Managed state to be accessed by route handlers
     let options = PartyOptions {
         auth: AtomicBool::new(args.auth),
         token: token,
@@ -156,9 +157,17 @@ fn rocket() -> _ {
         disable_check: args.disable_check
     };
 
+    // Sever config
+    let config = Config {
+        port: args.port,
+        log_level: if args.verbose { rocket::config::LogLevel::Normal } else { rocket::config::LogLevel::Critical },
+        ..Config::default()
+    };
+
     rocket::build()
-    .mount("/", routes![index, webparty, push_html])
-    .manage(options)
+        .configure(config)
+        .mount("/", routes![index, webparty, push_html])
+        .manage(options)
 }
 
 #[cfg(test)] mod tests;
