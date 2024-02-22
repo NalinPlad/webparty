@@ -30,5 +30,5 @@ Options:
 Heres some things I want to add in the future(feel free to PR)
 * TLS Support
 * Automatic asset uploading(adding an image tag with a local image)
-* Improve the way client side DOM manipulation is [detected]()
+* Improve the way client side DOM manipulation is [detected](https://github.com/NalinPlad/webparty/blob/main/src/webparty.js)
 
