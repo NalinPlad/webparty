@@ -1,5 +1,5 @@
 # webparty
-
+> Hypertext with superpowers
 
 
 Webparty is an experimental website server and editor. It monitors changes to the client's HTML and persists their changes on the server.
