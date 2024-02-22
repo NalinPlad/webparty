@@ -4,7 +4,7 @@
 
 Webparty is an experimental website server and editor. It monitors changes to the client's HTML and persists their changes on the server.
 
-Webparty only really works if your browser has strong developer tooling. Chrome and Firefox both have great HTML editors built in. I would describe webparty as *"what 5th grade me wished `Inspect Page` did"* (namely the changes actually saving).
+Webparty shines when your browser has strong developer tooling. Chrome and Firefox both have great HTML editors built in. I would describe webparty as *"what 5th grade me wished `Inspect Page` did"* (namely the changes actually saving).
 
 It also has support for authentication if you want to share your site publicly.
 
