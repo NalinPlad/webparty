@@ -142,6 +142,8 @@ async fn push_html(markup: String, state: &State<PartyOptions>, _auth: Token<'_>
 #[launch]
 fn rocket() -> _ {
     let args = Args::parse();
+    
+    println!("Starting webparty on port {}...", args.port);
 
     if !Path::new(&args.path).exists() || args.force {
         std::fs::write(&args.path, PARTYHTML).unwrap();
@@ -168,6 +170,7 @@ fn rocket() -> _ {
         path: args.path,
         disable_check: args.disable_check
     };
+    
 
     // Sever config
     let config = Config {
@@ -176,7 +179,6 @@ fn rocket() -> _ {
         ..Config::default()
     };
 
-    print!("Starting webparty on port {}...", args.port);
 
     rocket::build()
         .configure(config)

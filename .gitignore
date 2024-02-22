@@ -15,3 +15,5 @@ Cargo.lock
 
 webparty.html
 */*.DS_Store
+
+.vscode

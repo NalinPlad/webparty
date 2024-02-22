@@ -26,3 +26,9 @@ Options:
   -V, --version        Print version
 ```
 
+### Roadmap
+Heres some things I want to add in the future(feel free to PR)
+* TLS Support
+* Automatic asset uploading(adding an image tag with a local image)
+* Improve the way client side DOM manipulation is [detected]()
+
