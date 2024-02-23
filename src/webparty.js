@@ -21,11 +21,11 @@ function getPageSource() {
 
 function sendUpdate() {
     let source = getPageSource();
-    fetch('/update', {
-        method: 'PUT',
+    fetch("/update", {
+        method: "PUT",
         headers: {
-            'Content-Type': 'text/html',
-            'Authorization': 'Basic ' + window.localStorage.getItem('auth'),
+            "Content-Type": "text/html",
+            "Authorization": "Basic " + window.localStorage.getItem("auth"),
         },
         body: source,
     });
@@ -39,13 +39,21 @@ function handleImages() {
             let fileInputElement = document.createElement("input");
 
             fileInputElement.type = "file";
+            fileInputElement.accept="image/*";
 
             if (!confirm("Click OK to upload file")) {return}
 
             document.body.append(fileInputElement);
             
             fileInputElement.onchange = _ => {
-                console.log(fileInputElement.files);
+                // console.log(fileInputElement.files);
+                fetch("/upload", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "blob",
+                        "Authorization": "Basic " + window.localStorage.getItem("auth")
+                    }
+                });
             }
             
             // document.body.removeChild(fileInputElement)

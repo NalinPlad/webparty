@@ -126,8 +126,6 @@ fn webparty() -> DeveloperJS {
     DeveloperJS(js)
 }
 
-
-
 #[put("/update", data="<markup>")]
 async fn push_html(markup: String, state: &State<PartyOptions>, _auth: Token<'_>) -> Status {
 
@@ -141,6 +139,9 @@ async fn push_html(markup: String, state: &State<PartyOptions>, _auth: Token<'_>
     write(&state.path, markup).unwrap();
     Status::Ok
 }
+
+// #[post("/upload", data="<file>")]
+// async fn upload_file()
 
 
 
