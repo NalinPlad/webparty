@@ -77,7 +77,7 @@ function handleImages() {
                 document.body.removeChild(fileInputElement);
                 document.body.removeChild(labelElement);
 
-                if(up.status == 200) {
+                if(up.status == 201) {
                     let resp = await up.json();
                     img.src = resp.path;
                 } else {
