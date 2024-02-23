@@ -145,6 +145,10 @@ fn rocket() -> _ {
     
     println!("Starting webparty on port {}...", args.port);
 
+    if !args.verbose {
+        println!("Stat with -v to enable request logging");
+    }
+
     if !Path::new(&args.path).exists() || args.force {
         std::fs::write(&args.path, PARTYHTML).unwrap();
     }
