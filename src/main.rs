@@ -122,7 +122,7 @@ fn index(state: &State<PartyOptions>) -> PartyHtml {
 
 #[get("/Dont_remove_this")]
 fn webparty() -> DeveloperJS {
-    let js = std::fs::read_to_string("./webparty.js").unwrap();
+    let js = std::fs::read_to_string("src/webparty.js").unwrap();
     DeveloperJS(js)
 }
 
