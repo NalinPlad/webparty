@@ -36,24 +36,53 @@ function handleImages() {
         if(img.src == window.location.href+"PARTY") { 
             // alert(1);
             img.src=""
+
+            let id = "Party-upload-" + Math.round(Math.random()*1000);
+
             let fileInputElement = document.createElement("input");
 
             fileInputElement.type = "file";
-            fileInputElement.accept="image/*";
+            fileInputElement.accept = "image/*";
+            fileInputElement.id = id
+            fileInputElement.hidden=true;
+
+            let labelElement = document.createElement("label");
+
+            labelElement.htmlFor = id
+
+            labelElement.style.backgroundColor="beige"
+            labelElement.style.padding="1rem"
+
+            labelElement.innerHTML = "<span style='font-weight:bold'>[webparty]</span> Click to Upload Image"
+
+
 
             if (!confirm("Click OK to upload file")) {return}
 
             document.body.append(fileInputElement);
+            document.body.append(labelElement);
+
+            console.log(labelElement)
             
-            fileInputElement.onchange = _ => {
+            fileInputElement.onchange = async function() {
                 // console.log(fileInputElement.files);
-                fetch("/upload", {
+                let up = await fetch("/upload", {
                     method: "POST",
                     headers: {
                         "Content-Type": "blob",
                         "Authorization": "Basic " + window.localStorage.getItem("auth")
                     }
                 });
+
+                document.body.removeChild(fileInputElement);
+                document.body.removeChild(labelElement);
+
+                if(up.status == 200) {
+                    let resp = await up.json();
+                    img.src = resp.path;
+                } else {
+                    alert("Something went wrong with uploading the image");
+                }
             }
             
             // document.body.removeChild(fileInputElement)
