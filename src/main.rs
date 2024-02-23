@@ -1,7 +1,7 @@
 use std::{fs::write, path::Path, sync::atomic::{AtomicBool, Ordering}};
 use clap::Parser;
 
-use rocket::{http::Status, request::{FromRequest, Outcome}, Config, Request, State};
+use rocket::{http::Status, request::{FromRequest, Outcome}, response, tokio::fs, Config, Request, State};
 #[macro_use] extern crate rocket;
 
 #[derive(Parser, Debug, Clone)]
@@ -77,6 +77,10 @@ struct PartyHtml(String);
 
 #[derive(Responder)]
 #[response(status = 200, content_type = "text/javascript")]
+struct DeveloperJS(String);
+
+#[derive(Responder)]
+#[response(status = 200, content_type = "text/javascript")]
 struct StaticJS(&'static [u8]);
 
 #[derive(Responder)]
@@ -117,8 +121,9 @@ fn index(state: &State<PartyOptions>) -> PartyHtml {
 }
 
 #[get("/Dont_remove_this")]
-fn webparty() -> StaticJS {
-    StaticJS(PARTYJS)
+fn webparty() -> DeveloperJS {
+    let js = std::fs::read_to_string("./webparty.js").unwrap();
+    DeveloperJS(js)
 }
 
 
@@ -146,7 +151,7 @@ fn rocket() -> _ {
     println!("Starting webparty on port {}...", args.port);
 
     if !args.verbose {
-        println!("Stat with -v to enable request logging");
+        println!("Start with -v to enable request logging");
     }
 
     if !Path::new(&args.path).exists() || args.force {
