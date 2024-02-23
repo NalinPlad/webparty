@@ -31,6 +31,31 @@ function sendUpdate() {
     });
 }
 
+function handleImages() {
+    document.querySelectorAll("img").forEach(img => {
+        if(img.src == window.location.href+"PARTY") { 
+            // alert(1);
+            img.src=""
+            let fileInputElement = document.createElement("input");
+
+            fileInputElement.type = "file";
+
+            if (!confirm("Click OK to upload file")) {return}
+
+            document.body.append(fileInputElement);
+            
+            fileInputElement.onchange = _ => {
+                console.log(fileInputElement.files);
+            }
+            
+            // document.body.removeChild(fileInputElement)
+
+
+
+        }
+    });
+}
+
 // check for changes every 100ms
 // yeah there no better way to do this and I hate it but chrome devtools doesn't report changes to the dom for some reason
 
@@ -49,6 +74,10 @@ function checkForChanges() {
     // let hash = cyrb53(source);
     if (source !== lastSource) {
         // lastHash = hash;
+        
+        // check for images
+        handleImages();
+
         lastSource = source;
         sendUpdate();
         // alert("PUT update");
