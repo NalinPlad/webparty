@@ -1,7 +1,7 @@
 use std::{fs::write, path::Path, sync::atomic::{AtomicBool, Ordering}};
 use clap::Parser;
 
-use rocket::{http::Status, request::{FromRequest, Outcome}, response, tokio::fs, Config, Request, State};
+use rocket::{fs::TempFile, http::Status, request::{FromRequest, Outcome}, Config, Request, State, form::Form};
 #[macro_use] extern crate rocket;
 
 #[derive(Parser, Debug, Clone)]
@@ -33,7 +33,16 @@ struct Args {
     
     /// Port to run webparty on
     #[arg(short, long, default_value_t = 8000)]
-    port: u16
+    port: u16,
+
+    /// Disable image uploading
+    // TODO
+    #[arg(short, long, default_value_t = false)]
+    disable_images: bool,
+
+    /// Folder to persist images to
+    #[arg(long, default_value_t = String::from("./assets"))]
+    assets_path: String,
 }
 
 struct Token<'r>(&'r str);
@@ -70,6 +79,10 @@ impl<'r> FromRequest<'r> for Token<'r> {
     }
 }
 
+#[derive(FromForm)]
+struct Upload<'r> {
+    file: TempFile<'r>
+}
 
 #[derive(Responder)]
 #[response(status = 200, content_type = "html")]
@@ -87,10 +100,14 @@ struct StaticJS(&'static [u8]);
 #[response(status = 500, content_type = "html")]
 struct StaticPartyError(&'static [u8]);
 
+
+
+
 // Include webparty.js and default html as bytes
 static PARTYJS: &'static [u8] = include_bytes!("webparty.js");
 static PARTYHTML: &'static [u8] = include_bytes!("default.html");
 static PARTYERRORHTML: &'static [u8] = include_bytes!("error.html");
+
 
 
 /// Options that should be exposed to route handlers
@@ -103,7 +120,10 @@ struct PartyOptions {
     path: String,
 
     // Disable checking for webparty.js tag
-    disable_check: bool
+    disable_check: bool,
+
+    // Path to persist images
+    assets_path: String
 }
 
 #[catch(500)]
@@ -131,7 +151,7 @@ async fn push_html(markup: String, state: &State<PartyOptions>, _auth: Token<'_>
 
     // Check for client code if checks aren't disabled
     if !state.disable_check && !markup.contains(r#"<script src="/Dont_remove_this"></script>"#) {
-        return Status::BadRequest;
+       return Status::BadRequest
     }
 
     // Auth is handled by request guard https://api.rocket.rs/v0.5/rocket/request/trait.FromRequest.html#outcomes
@@ -140,8 +160,11 @@ async fn push_html(markup: String, state: &State<PartyOptions>, _auth: Token<'_>
     Status::Ok
 }
 
-// #[post("/upload", data="<file>")]
-// async fn upload_file()
+#[post("/upload", data="<upload>")]
+async fn upload_file(mut upload: Form<Upload<'_>>, state: &State<PartyOptions>) -> Status {
+    upload.file.persist_to(&state.assets_path).await.unwrap();
+    return Status::Ok
+}
 
 
 
@@ -178,7 +201,8 @@ fn rocket() -> _ {
         auth: AtomicBool::new(args.auth),
         token: token,
         path: args.path,
-        disable_check: args.disable_check
+        disable_check: args.disable_check,
+        assets_path: args.assets_path
     };
     
 
@@ -193,7 +217,7 @@ fn rocket() -> _ {
     rocket::build()
         .configure(config)
         .register("/", catchers![internal_error])
-        .mount("/", routes![index, webparty, push_html])
+        .mount("/", routes![index, webparty, push_html, upload_file])
         .manage(options)
 }
 
