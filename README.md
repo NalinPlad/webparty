@@ -6,7 +6,7 @@ Webparty is an experimental website server and editor. It monitors changes to th
 
 Webparty shines when your browser has strong developer tooling. Chrome and Firefox both have great HTML editors built in. I would describe webparty as *"what 5th grade me wished `Inspect Page` did"* (namely the changes actually saving).
 
-It also has support for authentication if you want to share your site publicly.
+It also has support for authentication if you want to host your site publicly.
 
 ### Command line arguments
 > ⓘ NOTE: `webparty --help` to show this info
