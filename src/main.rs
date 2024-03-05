@@ -161,7 +161,7 @@ async fn push_html(markup: String, state: &State<PartyOptions>, _auth: Token<'_>
 
 #[post("/upload", data="<upload>")]
 async fn upload_file(mut upload: Form<Upload<'_>>, state: &State<PartyOptions>) -> Status {
-    upload.file.persist_to(&state.assets_path).await.unwrap();
+    upload.file.persist_to(&state.assets_path).await.unwrap(); 
     return Status::Ok
 }
 
