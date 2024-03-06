@@ -155,7 +155,6 @@ async fn push_html(markup: String, state: &State<PartyOptions>, _auth: Token<'_>
     }
 
     // Auth is handled by request guard https://api.rocket.rs/v0.5/rocket/request/trait.FromRequest.html#outcomes
-    bump
     write(&state.path, markup).unwrap();
     Status::Ok
 }
