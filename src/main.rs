@@ -182,7 +182,7 @@ fn rocket() -> _ {
     }
 
     let token = if args.auth && args.token.is_none() {
-        println!("Looks like you didn't provide a password with --token <TOKEN>. I'll generate one for you.");
+        println!("Looks like you didn't provide a secret password with --token <TOKEN>. I'll generate one for you.");
 
         let token = rand::random::<u64>().to_string();
         println!("Your token is: {}", token);
